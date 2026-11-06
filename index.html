@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090d1c">
+<title>The Mini Arcade</title>
+<style>
+:root{--bg:#090d1c;--panel:#141b32;--panel2:#1b2542;--ink:#f5f7ff;--muted:#aab4d0;--cyan:#59e1e8;--pink:#ff65ad;--yellow:#ffd166;--green:#8cff98}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1b2850 0%,var(--bg) 58%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}
+.wrap{width:min(1100px,calc(100% - 32px));margin:auto;padding:28px 0 48px}
+header{text-align:center;padding:24px 0 30px}
+.kicker{color:var(--cyan);font-size:.75rem;font-weight:900;letter-spacing:.28em;text-transform:uppercase}
+h1{font-size:clamp(2.5rem,8vw,5rem);line-height:.98;margin:12px 0 10px;letter-spacing:-.06em;text-shadow:4px 4px 0 #5b3d9b}
+header p{color:var(--muted);margin:0;font-size:1.05rem}
+.pixel{font-weight:1000;letter-spacing:.08em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:linear-gradient(145deg,#1b2544,#11182d);border:1px solid #344267;border-radius:18px;padding:16px;box-shadow:0 12px 30px #0005;transition:transform .18s,border-color .18s}
+.card:hover{transform:translateY(-4px);border-color:var(--cyan)}
+.art{height:130px;border-radius:12px;background:#0a1023;display:grid;place-items:center;overflow:hidden;margin-bottom:14px;border:1px solid #2a385e}
+.art canvas{width:100%;height:100%;display:block}
+.card h2{font-size:1.2rem;margin:0 0 5px}
+.card p{font-size:.9rem;line-height:1.4;color:var(--muted);min-height:40px;margin:0 0 14px}
+.play{width:100%;padding:11px 14px;border-radius:10px;background:linear-gradient(90deg,#59e1e8,#8cffd1);color:#081321;font-weight:900}
+.play:hover{filter:brightness(1.08)}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:4px 0 26px}
+.stat{background:#111a31;border:1px solid #2e3c61;border-radius:999px;padding:8px 15px;color:var(--muted);font-size:.88rem}
+.stat b{color:var(--yellow);margin-left:5px}
+footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
+.modal{position:fixed;inset:0;background:#050817ed;display:none;align-items:center;justify-content:center;padding:14px;z-index:10}
+.modal.open{display:flex}
+.gamebox{width:min(900px,100%);background:#10182e;border:1px solid #43547f;border-radius:18px;padding:16px;box-shadow:0 24px 80px #000b}
+.gamehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.gamehead h2{margin:0;font-size:1.25rem}
+.headright{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem}
+.close{background:#273453;color:white;border-radius:9px;padding:8px 12px;font-weight:800}
+.stage{position:relative;background:#070d1c;border:1px solid #344267;border-radius:12px;overflow:hidden}
+#game{width:100%;height:auto;display:block;aspect-ratio:16/9;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:#070d1cce;padding:20px}
+.overlay.hidden{display:none}
+.overlaybox{max-width:440px}
+.overlay h3{font-size:clamp(1.7rem,5vw,2.7rem);margin:0 0 8px;text-shadow:3px 3px #5b3d9b}
+.overlay p{color:#d0d8ef;line-height:1.5;margin:0 0 18px}
+.overlay button{background:var(--yellow);color:#151326;border-radius:10px;padding:12px 24px;font-weight:1000}
+.help{text-align:center;color:var(--muted);font-size:.85rem;margin:11px 0 0}
+@media(max-width:560px){.wrap{width:min(100% - 22px,1100px);padding-top:14px}.card{padding:12px}.art{height:115px}.gamebox{padding:10px}.gamehead h2{font-size:1rem}.headright{font-size:.78rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">INSERT COIN • PRESS START</div>
+  <h1 class="pixel">THE MINI ARCADE</h1>
+  <p>Five tiny games. One big challenge. How high can you score?</p>
+</header>
+<div class="stats">
+  <div class="stat">Games played <b id="played">0 / 5</b></div>
+  <div class="stat">Arcade score <b id="total">0</b></div>
+  <div class="stat">Personal best <b id="best">0</b></div>
+</div>
+<main class="grid" id="cards">
+  <article class="card"><div class="art"><canvas id="art0" width="300" height="150"></canvas></div><h2>01 · Flappy Bird</h2><p>Tap to flap. Dodge the pipes. Don't hit the ground!</p><button class="play" data-game="flappy">PLAY GAME</button></article>
+  <article class="card"><div class="art"><canvas id="art1" width="300" height="150"></canvas></div><h2>02 · Pixel Platformer</h2><p>Run, jump, grab five coins, and make it to the flag.</p><button class="play" data-game="platform">PLAY GAME</button></article>
+  <article class="card"><div class="art"><canvas id="art2" width="300" height="150"></canvas></div><h2>03 · Breakout</h2><p>Keep the ball alive and smash every brick.</p><button class="play" data-game="breakout">PLAY GAME</button></article>
+  <article class="card"><div class="art"><canvas id="art3" width="300" height="150"></canvas></div><h2>04 · Space Invaders</h2><p>Defend the galaxy. Take out 15 alien invaders.</p><button class="play" data-game="invaders">PLAY GAME</button></article>
+  <article class="card"><div class="art"><canvas id="art4" width="300" height="150"></canvas></div><h2>05 · Snake</h2><p>Eat the glowing dots, grow longer, and don't crash.</p><button class="play" data-game="snake">PLAY GAME</button></article>
+</main>
+<footer>Made for fun • No downloads • No account required</footer>
+</div>
+
+<div class="modal" id="modal">
+ <div class="gamebox">
+  <div class="gamehead"><h2 id="gameTitle">Game</h2><div class="headright"><span>Score: <b id="score">0</b></span><button class="close" id="close">✕ Exit</button></div></div>
+  <div class="stage"><canvas id="game" width="800" height="450"></canvas>
+   <div class="overlay" id="overlay"><div class="overlaybox"><h3 id="overlayTitle">READY?</h3><p id="overlayText">Get ready to play.</p><button id="start">START GAME</button></div></div>
+  </div>
+  <div class="help" id="help">Use the controls to play.</div>
+ </div>
+</div>
+<script>
+(() => {
+const $=s=>document.querySelector(s), canvas=$('#game'),ctx=canvas.getContext('2d');
+const W=800,H=450;
+let active=null, raf=0,last=0,score=0,played=new Set(),best=Number(localStorage.getItem('miniArcadeBest')||0),keys={},pointerX=W/2,touching=false;
+const titles={flappy:'Flappy Bird',platform:'Pixel Platformer',breakout:'Breakout',invaders:'Space Invaders',snake:'Snake'};
+const help={flappy:'Tap / click / SPACE to flap',platform:'← → or A / D to move • SPACE / ↑ to jump',breakout:'Move mouse / finger or use ← → to move paddle',invaders:'← → or A / D to move • SPACE / tap to shoot',snake:'Arrow keys / WASD • Swipe on mobile'};
+$('#best').textContent=best;
+function setScore(n){score=Math.max(0,Math.floor(n));$('#score').textContent=score}
+function overlay(title,msg,button='PLAY AGAIN'){ $('#overlayTitle').textContent=title;$('#overlayText').textContent=msg;$('#start').textContent=button;$('#overlay').classList.remove('hidden')}
+function hideOverlay(){$('#overlay').classList.add('hidden')}
+function finish(won,msg){cancelAnimationFrame(raf);raf=0;active=null;const final=score+(won?100:0);setScore(final);played.add(current);const total=[...played].reduce((a)=>a+1,0);$('#played').textContent=total+' / 5';let sum=Number(localStorage.getItem('miniArcadeTotal')||0)+final;localStorage.setItem('miniArcadeTotal',sum);$('#total').textContent=sum;if(final>best){best=final;localStorage.setItem('miniArcadeBest',best);$('#best').textContent=best}overlay(won?'YOU DID IT!':'GAME OVER',msg+' Final score: '+final+(won?' (includes 100-point clear bonus)':''),'PLAY AGAIN')}
+let current='';
+function openGame(name){current=name;$('#modal').classList.add('open');$('#gameTitle').textContent=titles[name];$('#help').textContent=help[name];setScore(0);overlay('READY?',intro[name],'START GAME')}
+function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
+$('#close').onclick=closeGame;$('#start').onclick=()=>start(current);
+document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game));
+const intro={flappy:'Tap, click, or press SPACE to flap through 10 pipes. One crash ends the run.',platform:'Collect all five coins and touch the flag. You have one short level.',breakout:'Clear the brick wall without letting the ball fall. You have three lives.',invaders:'Destroy 15 aliens before they reach your defenses. Watch for their return fire.',snake:"Collect 10 glowing snacks. Don't hit the walls or your own tail."};
+function base(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#091127';ctx.fillRect(0,0,W,H);for(let i=0;i<70;i++){ctx.fillStyle=i%3?'#25365b':'#52638a';ctx.fillRect((i*137)%W,(i*71)%H,2,2)}}
+function text(t,x,y,size=20,color='#fff',align='left'){ctx.fillStyle=color;ctx.font=`900 ${size}px system-ui`;ctx.textAlign=align;ctx.fillText(t,x,y)}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function circle(x,y,r,c){ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+function start(name){cancelAnimationFrame(raf);current=name;setScore(0);hideOverlay();keys={};last=0;
+ if(name==='flappy') active=makeFlappy();
+ if(name==='platform') active=makePlatform();
+ if(name==='breakout') active=makeBreakout();
+ if(name==='invaders') active=makeInvaders();
+ if(name==='snake') active=makeSnake();
+ raf=requestAnimationFrame(loop)}
+function loop(t){if(!active)return;let dt=Math.min((t-last)/1000||0,0.033);last=t;active.update(dt);if(active){active.draw();if(active)raf=requestAnimationFrame(loop)}}
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(active&&current==='flappy'&&e.key===' ')active.flap?.();if(active&&current==='invaders'&&e.key===' ')active.shoot?.()});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointerX=(e.clientX-r.left)/r.width*W});
+canvas.addEventListener('pointerdown',e=>{touching=true;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;if(active){if(current==='flappy')active.flap?.();if(current==='invaders')active.shoot?.();if(current==='snake')active.swipeStart?.(x,y)}});
+canvas.addEventListener('pointerup',e=>{touching=false;if(active&&current==='snake'){const r=canvas.getBoundingClientRect();active.swipeEnd?.((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)}});
+function makeFlappy(){let bird={x:175,y:210,v:0},pipes=[],time=0,passed=0,dead=false;function flap(){bird.v=-390}return{flap,update(dt){if(dead)return;time+=dt;bird.v+=1000*dt;bird.y+=bird.v*dt;if(time>(pipes.length?pipes[pipes.length-1].x<470?1.25:99:0)){pipes.push({x:W+20,gap:155,top:65+Math.random()*190,scored:false})}pipes.forEach(p=>{p.x-=190*dt;if(!p.scored&&p.x+70<bird.x){p.scored=true;passed++;setScore(passed*10);if(passed>=10){finish(true,'You made it through all 10 pipes!');dead=true}}if(bird.x+15>p.x&&bird.x-15<p.x+70&&(bird.y-12<p.top||bird.y+12>p.top+p.gap)){dead=true;finish(false,'The pipes got you. Try another flight!')}});pipes=pipes.filter(p=>p.x>-90);if(bird.y>H-28||bird.y<0){dead=true;finish(false,'A little too high or a little too low!')}},draw(){base();rect(0,H-26,W,26,'#263c42');pipes.forEach(p=>{rect(p.x,0,70,p.top,'#59d66f');rect(p.x-7,p.top-18,84,18,'#8cff98');rect(p.x,p.top+p.gap,70,H-p.top-p.gap-26,'#59d66f');rect(p.x-7,p.top+p.gap,84,18,'#8cff98')});ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(Math.min(.7,Math.max(-.5,bird.v/600)));circle(0,0,15,'#ffd166');circle(8,-5,4,'#fff');circle(9,-5,2,'#111');ctx.fillStyle='#ff8a4c';ctx.beginPath();ctx.moveTo(12,2);ctx.lineTo(26,7);ctx.lineTo(12,10);ctx.fill();ctx.restore();text('PIPES '+passed+'/10',22,35,18,'#fff')},}};
+function makePlatform(){let p={x:45,y:345,vx:0,vy:0,w:28,h:34,ground:false},coins=[0,1,2,3,4].map((_,i)=>({x:145+i*112,y:[320,260,300,220,300][i],got:false})),plats=[{x:0,y:390,w:800,h:60},{x:110,y:350,w:100,h:14},{x:250,y:300,w:105,h:14},{x:390,y:260,w:110,h:14},{x:540,y:315,w:105,h:14}],flag={x:735,y:300};let won=false;return{update(dt){if(won)return;p.vx=(keys.arrowright||keys.d?220:0)-(keys.arrowleft||keys.a?220:0);p.x=Math.max(0,Math.min(W-p.w,p.x+p.vx*dt));if((keys[' ']||keys.arrowup||keys.w)&&p.ground){p.vy=-480;p.ground=false}p.vy+=1100*dt;let old=p.y;p.y+=p.vy*dt;p.ground=false;for(const q of plats){if(p.x+p.w>q.x&&p.x<q.x+q.w&&old+p.h<=q.y&&p.y+p.h>=q.y&&p.vy>=0){p.y=q.y-p.h;p.vy=0;p.ground=true}}coins.forEach(c=>{if(!c.got&&Math.hypot(p.x+14-c.x,p.y+17-c.y)<28){c.got=true;setScore(score+20)}});if(p.y>H){finish(false,'You fell off the course. Give it another go!');won=true}if(p.x+p.w>flag.x&&p.y+p.h>flag.y-40&&coins.every(c=>c.got)){won=true;finish(true,'All five coins collected and the flag reached!')}},draw(){base();plats.forEach(q=>rect(q.x,q.y,q.w,q.h,'#6b7ca8'));coins.forEach(c=>{if(!c.got){circle(c.x,c.y,9,'#ffd166');circle(c.x-2,c.y-2,3,'#fff2b2')}});rect(flag.x,flag.y,5,90,'#e9f0ff');ctx.fillStyle='#ff65ad';ctx.beginPath();ctx.moveTo(flag.x+5,flag.y);ctx.lineTo(flag.x+48,flag.y+15);ctx.lineTo(flag.x+5,flag.y+30);ctx.fill();rect(p.x,p.y,p.w,p.h,'#59e1e8');circle(p.x+19,p.y+10,3,'#091127');text('COINS '+coins.filter(c=>c.got).length+'/5',20,34,18);text('REACH THE FLAG',W-20,34,15,'#ffd166','right')}}}
+function makeBreakout(){let paddle={x:340,y:415,w:120,h:14},ball={x:400,y:380,vx:190,vy:-230,r:8},bricks=[],lives=3;for(let r=0;r<4;r++)for(let c=0;c<10;c++)bricks.push({x:42+c*72,y:65+r*29,w:62,h:18,on:true,color:['#ff65ad','#ffd166','#59e1e8','#8cff98'][r]});return{update(dt){paddle.x= Math.max(0,Math.min(W-paddle.w,(keys.arrowright? paddle.x+360*dt:keys.arrowleft?paddle.x-360*dt:pointerX-paddle.w/2)));ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;if(ball.x<ball.r||ball.x>W-ball.r)ball.vx*=-1;if(ball.y<ball.r)ball.vy=Math.abs(ball.vy);if(ball.y+ball.r>paddle.y&&ball.y<paddle.y+paddle.h&&ball.x>paddle.x&&ball.x<paddle.x+paddle.w&&ball.vy>0){ball.vy=-Math.abs(ball.vy);ball.vx=((ball.x-(paddle.x+paddle.w/2))/(paddle.w/2))*300}for(const b of bricks){if(b.on&&ball.x>b.x&&ball.x<b.x+b.w&&ball.y>b.y&&ball.y<b.y+b.h){b.on=false;ball.vy*=-1;setScore(score+10);break}}if(bricks.every(b=>!b.on)){finish(true,'Every brick is gone. Nice work!')}if(ball.y>H){lives--;if(lives<=0)finish(false,'You ran out of lives.');else{ball={x:400,y:380,vx:190,vy:-230,r:8}}}},draw(){base();bricks.forEach(b=>{if(b.on){rect(b.x,b.y,b.w,b.h,b.color);rect(b.x+3,b.y+3,b.w-6,3,'#ffffff55')}});rect(paddle.x,paddle.y,paddle.w,paddle.h,'#59e1e8');circle(ball.x,ball.y,ball.r,'#fff');text('LIVES '+lives,20,35,18);text('BREAK THE BRICKS',W-20,35,15,'#ffd166','right')}}}
+function makeInvaders(){let aliens=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)aliens.push({x:190+c*85,y:90+r*52,alive:true});let player={x:375},shots=[],enemyShots=[],dir=1,clock=0,kills=0,dead=false;function shoot(){if(shots.length<4)shots.push({x:player.x+25,y:390})}return{shoot,update(dt){if(dead)return;player.x=Math.max(0,Math.min(W-50,player.x+((keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0))*300*dt));if(Math.random()<dt*.7&&enemyShots.length<5){let a=aliens.filter(a=>a.alive);if(a.length){let q=a[Math.floor(Math.random()*a.length)];enemyShots.push({x:q.x+18,y:q.y+20})}}shots.forEach(s=>s.y-=430*dt);enemyShots.forEach(s=>s.y+=220*dt);shots=shots.filter(s=>s.y>-10);enemyShots=enemyShots.filter(s=>s.y<H+10);aliens.forEach(a=>{if(a.alive){shots.forEach(s=>{if(s.x>a.x-5&&s.x<a.x+40&&s.y>a.y-5&&s.y<a.y+30){a.alive=false;s.y=-20;kills++;setScore(kills*20);if(kills>=15){dead=true;finish(true,'The galaxy is safe. You defeated all 15 invaders!')}}})}});clock+=dt;if(clock>.65){clock=0;let live=aliens.filter(a=>a.alive);if(live.length){let edge=live.some(a=>a.x>W-65||a.x<15);if(edge){dir*=-1;live.forEach(a=>a.y+=22)}else live.forEach(a=>a.x+=dir*18)}}if(enemyShots.some(s=>s.x>player.x&&s.x<player.x+50&&s.y>390&&s.y<430)){dead=true;finish(false,'An alien shot got through your defenses.')}if(aliens.some(a=>a.alive&&a.y>365)){dead=true;finish(false,'The invaders reached your base!')}},draw(){base();aliens.forEach(a=>{if(a.alive){rect(a.x+7,a.y,24,7,'#8cff98');rect(a.x,a.y+7,38,17,'#59d66f');rect(a.x+5,a.y+24,7,7,'#8cff98');rect(a.x+26,a.y+24,7,7,'#8cff98');rect(a.x+9,a.y+11,5,5,'#091127');rect(a.x+25,a.y+11,5,5,'#091127')}});rect(player.x,405,50,15,'#59e1e8');rect(player.x+19,392,12,14,'#59e1e8');shots.forEach(s=>rect(s.x,s.y,4,12,'#ffd166'));enemyShots.forEach(s=>rect(s.x,s.y,5,12,'#ff65ad'));text('ALIENS '+kills+'/15',20,35,18)}}}
+function makeSnake(){const cell=20,cols=40,rows=22;let snake=[{x:9,y:11},{x:8,y:11},{x:7,y:11}],dir={x:1,y:0},next={x:1,y:0},food={x:20,y:11},acc=0,eaten=0,dead=false,sw0=null;function place(){do{food={x:Math.floor(Math.random()*cols),y:Math.floor(Math.random()*rows)}}while(snake.some(s=>s.x===food.x&&s.y===food.y))}function change(x,y){if(x!==-dir.x||y!==-dir.y)next={x,y}}return{swipeStart(x,y){sw0={x,y}},swipeEnd(x,y){if(!sw0)return;let dx=x-sw0.x,dy=y-sw0.y;if(Math.abs(dx)>Math.abs(dy))change(Math.sign(dx),0);else change(0,Math.sign(dy));sw0=null},update(dt){if(dead)return;acc+=dt;if(acc<.115)return;acc=0;dir=next;let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(h.x<0||h.x>=cols||h.y<0||h.y>=rows||snake.some((s,i)=>i<snake.length-1&&s.x===h.x&&s.y===h.y)){dead=true;finish(false,'The snake crashed. Try a different route!');return}snake.unshift(h);if(h.x===food.x&&h.y===food.y){eaten++;setScore(eaten*25);place();if(eaten>=10){dead=true;finish(true,'Ten snacks collected. Snake champion!')}}else snake.pop()},draw(){base();for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)rect(x*20+1,y*20+1,18,18,'#101a31');circle(food.x*20+10,food.y*20+10,7,'#ff65ad');snake.forEach((s,i)=>{rect(s.x*20+2,s.y*20+2,16,16,i?'#59d66f':'#8cff98')});text('SNACKS '+eaten+'/10',20,30,16)}}}
+function drawArts(){const configs=[['#ffd166','#59d66f'],['#59e1e8','#ff65ad'],['#ff65ad','#ffd166'],['#8cff98','#59e1e8'],['#59d66f','#ff65ad']];configs.forEach((co,i)=>{let c=document.getElementById('art'+i),g=c.getContext('2d');g.fillStyle='#0a1023';g.fillRect(0,0,300,150);if(i===0){g.fillStyle=co[0];g.beginPath();g.arc(90,70,19,0,7);g.fill();g.fillStyle=co[1];g.fillRect(180,0,30,55);g.fillRect(180,95,30,55);g.fillRect(175,50,40,10);g.fillRect(175,90,40,10)}if(i===1){g.fillStyle=co[0];g.fillRect(35,100,230,50);g.fillRect(80,75,55,10);g.fillRect(170,50,55,10);g.fillStyle=co[1];g.fillRect(125,70,20,30)}if(i===2){for(let r=0;r<3;r++)for(let x=0;x<5;x++){g.fillStyle=[co[0],co[1],'#59e1e8'][r];g.fillRect(40+x*45,25+r*23,38,15)}g.fillStyle='#fff';g.beginPath();g.arc(150,105,7,0,7);g.fill();g.fillStyle=co[0];g.fillRect(110,125,80,8)}if(i===3){g.fillStyle=co[0];for(let r=0;r<2;r++)for(let x=0;x<4;x++)g.fillRect(55+x*48,35+r*35,28,20);g.fillStyle=co[1];g.fillRect(140,118,30,10);g.fillRect(151,105,8,15)}if(i===4){g.fillStyle=co[0];[[90,75],[110,75],[130,75],[150,75],[150,95],[150,115]].forEach(([x,y])=>g.fillRect(x,y,18,18));g.fillStyle=co[1];g.fillRect(220,45,15,15)}})}
+drawArts();$('#total').textContent=localStorage.getItem('miniArcadeTotal')||0;
+})();
+</script>
+</body>
+</html>
