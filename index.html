@@ -45,6 +45,56 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
 .overlay button{background:var(--yellow);color:#151326;border-radius:10px;padding:12px 24px;font-weight:1000}
 .help{text-align:center;color:var(--muted);font-size:.85rem;margin:11px 0 0}
 @media(max-width:560px){.wrap{width:min(100% - 22px,1100px);padding-top:14px}.card{padding:12px}.art{height:115px}.gamebox{padding:10px}.gamehead h2{font-size:1rem}.headright{font-size:.78rem}}
+
+/* Mobile arcade controls */
+.touch-controls {
+    display: none;
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.touch-controls .move-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.touch-btn {
+    width: 62px;
+    height: 62px;
+    border-radius: 16px;
+    background: #59e1e8dd;
+    color: #091127;
+    font-size: 25px;
+    font-weight: 1000;
+    border: 2px solid #ffffff88;
+    touch-action: none;
+    user-select: none;
+    pointer-events: auto;
+}
+
+.action-btn {
+    width: 85px;
+    background: #ffd166ee;
+    font-size: 15px;
+}
+
+.touch-btn:active {
+    transform: scale(.92);
+    filter: brightness(1.2);
+}
+
+@media (pointer: coarse) and (max-width: 900px) {
+    .touch-controls[data-game="platform"],
+    .touch-controls[data-game="invaders"] {
+        display: flex;
+    }
+}
 </style>
 </head>
 <body>
@@ -73,6 +123,14 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
  <div class="gamebox">
   <div class="gamehead"><h2 id="gameTitle">Game</h2><div class="headright"><span>Score: <b id="score">0</b></span><button class="close" id="close">✕ Exit</button></div></div>
   <div class="stage"><canvas id="game" width="800" height="450"></canvas>
+<div class="touch-controls" id="touchControls">
+    <div class="move-buttons">
+        <button class="touch-btn" data-key="arrowleft">◀</button>
+        <button class="touch-btn" data-key="arrowright">▶</button>
+    </div>
+    <button class="touch-btn action-btn" id="actionButton">JUMP</button>
+</div>
+
    <div class="overlay" id="overlay"><div class="overlaybox"><h3 id="overlayTitle">READY?</h3><p id="overlayText">Get ready to play.</p><button id="start">START GAME</button></div></div>
   </div>
   <div class="help" id="help">Use the controls to play.</div>
@@ -91,7 +149,7 @@ function overlay(title,msg,button='PLAY AGAIN'){ $('#overlayTitle').textContent=
 function hideOverlay(){$('#overlay').classList.add('hidden')}
 function finish(won,msg){cancelAnimationFrame(raf);raf=0;active=null;const final=score+(won?100:0);setScore(final);played.add(current);const total=[...played].reduce((a)=>a+1,0);$('#played').textContent=total+' / 5';let sum=Number(localStorage.getItem('miniArcadeTotal')||0)+final;localStorage.setItem('miniArcadeTotal',sum);$('#total').textContent=sum;if(final>best){best=final;localStorage.setItem('miniArcadeBest',best);$('#best').textContent=best}overlay(won?'YOU DID IT!':'GAME OVER',msg+' Final score: '+final+(won?' (includes 100-point clear bonus)':''),'PLAY AGAIN')}
 let current='';
-function openGame(name){current=name;$('#modal').classList.add('open');$('#gameTitle').textContent=titles[name];$('#help').textContent=help[name];setScore(0);overlay('READY?',intro[name],'START GAME')}
+function openGame(name){current=name;$('#touchControls').dataset.game = name;$('#actionButton').textContent = name === 'platform' ? 'JUMP' : 'FIRE';$('#modal').classList.add('open');$('#gameTitle').textContent=titles[name];$('#help').textContent=help[name];setScore(0);overlay('READY?',intro[name],'START GAME')}
 function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
 $('#close').onclick=closeGame;$('#start').onclick=()=>start(current);
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game));
@@ -113,6 +171,56 @@ window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointerX=(e.clientX-r.left)/r.width*W});
 canvas.addEventListener('pointerdown',e=>{touching=true;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;if(active){if(current==='flappy')active.flap?.();if(current==='invaders')active.shoot?.();if(current==='snake')active.swipeStart?.(x,y)}});
 canvas.addEventListener('pointerup',e=>{touching=false;if(active&&current==='snake'){const r=canvas.getBoundingClientRect();active.swipeEnd?.((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)}});
+  
+// Mobile arcade button controls
+document.querySelectorAll('.touch-btn[data-key]').forEach(btn => {
+
+    const press = e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        keys[btn.dataset.key] = true;
+
+        if (btn.setPointerCapture) {
+            btn.setPointerCapture(e.pointerId);
+        }
+    };
+
+    const release = e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        keys[btn.dataset.key] = false;
+    };
+
+    btn.addEventListener('pointerdown', press);
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointercancel', release);
+    btn.addEventListener('lostpointercapture', release);
+});
+
+const actionButton = document.getElementById('actionButton');
+
+actionButton.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (current === 'platform') {
+        keys[' '] = true;
+    }
+
+    if (current === 'invaders' && active) {
+        active.shoot();
+    }
+});
+
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(event => {
+    actionButton.addEventListener(event, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        keys[' '] = false;
+    });
+});
 function makeFlappy(){let bird={x:175,y:210,v:0},pipes=[],time=0,passed=0,dead=false;function flap(){bird.v=-390}return{flap,update(dt){if(dead)return;time+=dt;bird.v+=1000*dt;bird.y+=bird.v*dt;if(time>(pipes.length?pipes[pipes.length-1].x<470?1.25:99:0)){pipes.push({x:W+20,gap:155,top:65+Math.random()*190,scored:false})}pipes.forEach(p=>{p.x-=190*dt;if(!p.scored&&p.x+70<bird.x){p.scored=true;passed++;setScore(passed*10);if(passed>=10){finish(true,'You made it through all 10 pipes!');dead=true}}if(bird.x+15>p.x&&bird.x-15<p.x+70&&(bird.y-12<p.top||bird.y+12>p.top+p.gap)){dead=true;finish(false,'The pipes got you. Try another flight!')}});pipes=pipes.filter(p=>p.x>-90);if(bird.y>H-28||bird.y<0){dead=true;finish(false,'A little too high or a little too low!')}},draw(){base();rect(0,H-26,W,26,'#263c42');pipes.forEach(p=>{rect(p.x,0,70,p.top,'#59d66f');rect(p.x-7,p.top-18,84,18,'#8cff98');rect(p.x,p.top+p.gap,70,H-p.top-p.gap-26,'#59d66f');rect(p.x-7,p.top+p.gap,84,18,'#8cff98')});ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(Math.min(.7,Math.max(-.5,bird.v/600)));circle(0,0,15,'#ffd166');circle(8,-5,4,'#fff');circle(9,-5,2,'#111');ctx.fillStyle='#ff8a4c';ctx.beginPath();ctx.moveTo(12,2);ctx.lineTo(26,7);ctx.lineTo(12,10);ctx.fill();ctx.restore();text('PIPES '+passed+'/10',22,35,18,'#fff')},}};
 function makePlatform(){let p={x:45,y:345,vx:0,vy:0,w:28,h:34,ground:false},coins=[0,1,2,3,4].map((_,i)=>({x:145+i*112,y:[320,260,300,220,300][i],got:false})),plats=[{x:0,y:390,w:800,h:60},{x:110,y:350,w:100,h:14},{x:250,y:300,w:105,h:14},{x:390,y:260,w:110,h:14},{x:540,y:315,w:105,h:14}],flag={x:735,y:300};let won=false;return{update(dt){if(won)return;p.vx=(keys.arrowright||keys.d?220:0)-(keys.arrowleft||keys.a?220:0);p.x=Math.max(0,Math.min(W-p.w,p.x+p.vx*dt));if((keys[' ']||keys.arrowup||keys.w)&&p.ground){p.vy=-480;p.ground=false}p.vy+=1100*dt;let old=p.y;p.y+=p.vy*dt;p.ground=false;for(const q of plats){if(p.x+p.w>q.x&&p.x<q.x+q.w&&old+p.h<=q.y&&p.y+p.h>=q.y&&p.vy>=0){p.y=q.y-p.h;p.vy=0;p.ground=true}}coins.forEach(c=>{if(!c.got&&Math.hypot(p.x+14-c.x,p.y+17-c.y)<28){c.got=true;setScore(score+20)}});if(p.y>H){finish(false,'You fell off the course. Give it another go!');won=true}if(p.x+p.w>flag.x&&p.y+p.h>flag.y-40&&coins.every(c=>c.got)){won=true;finish(true,'All five coins collected and the flag reached!')}},draw(){base();plats.forEach(q=>rect(q.x,q.y,q.w,q.h,'#6b7ca8'));coins.forEach(c=>{if(!c.got){circle(c.x,c.y,9,'#ffd166');circle(c.x-2,c.y-2,3,'#fff2b2')}});rect(flag.x,flag.y,5,90,'#e9f0ff');ctx.fillStyle='#ff65ad';ctx.beginPath();ctx.moveTo(flag.x+5,flag.y);ctx.lineTo(flag.x+48,flag.y+15);ctx.lineTo(flag.x+5,flag.y+30);ctx.fill();rect(p.x,p.y,p.w,p.h,'#59e1e8');circle(p.x+19,p.y+10,3,'#091127');text('COINS '+coins.filter(c=>c.got).length+'/5',20,34,18);text('REACH THE FLAG',W-20,34,15,'#ffd166','right')}}}
 function makeBreakout(){let paddle={x:340,y:415,w:120,h:14},ball={x:400,y:380,vx:190,vy:-230,r:8},bricks=[],lives=3;for(let r=0;r<4;r++)for(let c=0;c<10;c++)bricks.push({x:42+c*72,y:65+r*29,w:62,h:18,on:true,color:['#ff65ad','#ffd166','#59e1e8','#8cff98'][r]});return{update(dt){paddle.x= Math.max(0,Math.min(W-paddle.w,(keys.arrowright? paddle.x+360*dt:keys.arrowleft?paddle.x-360*dt:pointerX-paddle.w/2)));ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;if(ball.x<ball.r||ball.x>W-ball.r)ball.vx*=-1;if(ball.y<ball.r)ball.vy=Math.abs(ball.vy);if(ball.y+ball.r>paddle.y&&ball.y<paddle.y+paddle.h&&ball.x>paddle.x&&ball.x<paddle.x+paddle.w&&ball.vy>0){ball.vy=-Math.abs(ball.vy);ball.vx=((ball.x-(paddle.x+paddle.w/2))/(paddle.w/2))*300}for(const b of bricks){if(b.on&&ball.x>b.x&&ball.x<b.x+b.w&&ball.y>b.y&&ball.y<b.y+b.h){b.on=false;ball.vy*=-1;setScore(score+10);break}}if(bricks.every(b=>!b.on)){finish(true,'Every brick is gone. Nice work!')}if(ball.y>H){lives--;if(lives<=0)finish(false,'You ran out of lives.');else{ball={x:400,y:380,vx:190,vy:-230,r:8}}}},draw(){base();bricks.forEach(b=>{if(b.on){rect(b.x,b.y,b.w,b.h,b.color);rect(b.x+3,b.y+3,b.w-6,3,'#ffffff55')}});rect(paddle.x,paddle.y,paddle.w,paddle.h,'#59e1e8');circle(ball.x,ball.y,ball.r,'#fff');text('LIVES '+lives,20,35,18);text('BREAK THE BRICKS',W-20,35,15,'#ffd166','right')}}}
