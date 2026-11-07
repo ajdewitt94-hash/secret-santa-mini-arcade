@@ -405,6 +405,13 @@ function makeSnake() {
 function drawArts(){const configs=[['#ffd166','#59d66f'],['#59e1e8','#ff65ad'],['#ff65ad','#ffd166'],['#8cff98','#59e1e8'],['#59d66f','#ff65ad']];configs.forEach((co,i)=>{let c=document.getElementById('art'+i),g=c.getContext('2d');g.fillStyle='#0a1023';g.fillRect(0,0,300,150);if(i===0){g.fillStyle=co[0];g.beginPath();g.arc(90,70,19,0,7);g.fill();g.fillStyle=co[1];g.fillRect(180,0,30,55);g.fillRect(180,95,30,55);g.fillRect(175,50,40,10);g.fillRect(175,90,40,10)}if(i===1){g.fillStyle=co[0];g.fillRect(35,100,230,50);g.fillRect(80,75,55,10);g.fillRect(170,50,55,10);g.fillStyle=co[1];g.fillRect(125,70,20,30)}if(i===2){for(let r=0;r<3;r++)for(let x=0;x<5;x++){g.fillStyle=[co[0],co[1],'#59e1e8'][r];g.fillRect(40+x*45,25+r*23,38,15)}g.fillStyle='#fff';g.beginPath();g.arc(150,105,7,0,7);g.fill();g.fillStyle=co[0];g.fillRect(110,125,80,8)}if(i===3){g.fillStyle=co[0];for(let r=0;r<2;r++)for(let x=0;x<4;x++)g.fillRect(55+x*48,35+r*35,28,20);g.fillStyle=co[1];g.fillRect(140,118,30,10);g.fillRect(151,105,8,15)}if(i===4){g.fillStyle=co[0];[[90,75],[110,75],[130,75],[150,75],[150,95],[150,115]].forEach(([x,y])=>g.fillRect(x,y,18,18));g.fillStyle=co[1];g.fillRect(220,45,15,15)}})}
 drawArts();$('#total').textContent=localStorage.getItem('miniArcadeTotal')||0;
 })();
+    // Open a game directly from the URL
+const requestedGame = new URLSearchParams(window.location.search)
+    .get('game')?.toLowerCase();
+
+if (requestedGame && Object.prototype.hasOwnProperty.call(titles, requestedGame)) {
+    openGame(requestedGame);
+}
 </script>
 </body>
 </html>
