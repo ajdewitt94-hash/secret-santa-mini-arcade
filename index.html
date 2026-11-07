@@ -165,7 +165,10 @@ function openGame(name) {
     overlay('READY?', intro[name], 'START GAME');
 }
 function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
-$('#close').onclick=closeGame;$('#start').onclick=()=>start(current);
+$('#close').onclick=closeGame;$('#start').onclick=()=>{
+    $('#touchControls').classList.add('visible');
+    start(current);
+};
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game));
 const intro={flappy:'Tap, click, or press SPACE to flap through 10 pipes. One crash ends the run.',platform:'Collect all five coins and touch the flag. You have one short level.',breakout:'Clear the brick wall without letting the ball fall. You have three lives.',invaders:'Destroy 15 aliens before they reach your defenses. Watch for their return fire.',snake:"Collect 10 glowing snacks. Don't hit the walls or your own tail."};
 function base(){ctx.clearRect(0,0,W,H);ctx.fillStyle='#091127';ctx.fillRect(0,0,W,H);for(let i=0;i<70;i++){ctx.fillStyle=i%3?'#25365b':'#52638a';ctx.fillRect((i*137)%W,(i*71)%H,2,2)}}
