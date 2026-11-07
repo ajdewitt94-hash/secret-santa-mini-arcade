@@ -151,7 +151,19 @@ function overlay(title,msg,button='PLAY AGAIN'){ $('#overlayTitle').textContent=
 function hideOverlay(){$('#overlay').classList.add('hidden')}
 function finish(won,msg){cancelAnimationFrame(raf);raf=0;active=null;const final=score+(won?100:0);setScore(final);played.add(current);const total=[...played].reduce((a)=>a+1,0);$('#played').textContent=total+' / 5';let sum=Number(localStorage.getItem('miniArcadeTotal')||0)+final;localStorage.setItem('miniArcadeTotal',sum);$('#total').textContent=sum;if(final>best){best=final;localStorage.setItem('miniArcadeBest',best);$('#best').textContent=best}overlay(won?'YOU DID IT!':'GAME OVER',msg+' Final score: '+final+(won?' (includes 100-point clear bonus)':''),'PLAY AGAIN')}
 let current='';
-function openGame(name){current=name;$('#touchControls').classList.remove('visible');$('#touchControls').dataset.game = name;$('#actionButton').textContent = name === 'platform' ? 'JUMP' : 'FIRE';$('#modal').classList.add('open');$('#gameTitle').textContent=titles[name];$('#help').textContent=help[name];setScore(0);$('#touchControls').classList.add('visible');overlay('READY?',intro[name],'START GAME')}
+function openGame(name) {
+    current = name;
+    $('#touchControls').classList.remove('visible');
+    $('#touchControls').dataset.game = name;
+    $('#actionButton').textContent = name === 'platform' ? 'JUMP' : 'FIRE';
+
+    $('#modal').classList.add('open');
+    $('#gameTitle').textContent = titles[name];
+    $('#help').textContent = help[name];
+
+    setScore(0);
+    overlay('READY?', intro[name], 'START GAME');
+}
 function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
 $('#close').onclick=closeGame;$('#start').onclick=()=>start(current);
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game));
