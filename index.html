@@ -244,7 +244,7 @@ actionButton.addEventListener('pointerdown', e => {
 function makeFlappy(){let bird={x:175,y:210,v:0},pipes=[],time=0,passed=0,dead=false,winTimer=0;function flap(){if(!winTimer)bird.v=-390}return{flap,update(dt){if(dead)return;if(winTimer>0){winTimer-=dt;if(winTimer<=0){dead=true;finish(true,'You made it through all 10 pipes!')}return;}time+=dt;bird.v+=1000*dt;bird.y+=bird.v*dt;if(time>(pipes.length?pipes[pipes.length-1].x<470?1.25:99:0)){pipes.push({x:W+20,gap:155,top:65+Math.random()*190,scored:false})}pipes.forEach(p=>{p.x-=190*dt;if(!p.scored&&p.x+70<bird.x){p.scored=true;passed++;setScore(passed*10);if(passed>=10){winTimer=5;pipes=[];bird.v=0}}if(bird.x+15>p.x&&bird.x-15<p.x+70&&(bird.y-12<p.top||bird.y+12>p.top+p.gap)){dead=true;finish(false,'The pipes got you. Try another flight!')}});if(winTimer>0)return;pipes=pipes.filter(p=>p.x>-90);if(bird.y>H-28||bird.y<0){dead=true;finish(false,'A little too high or a little too low!')}},draw(){base();rect(0,H-26,W,26,'#263c42');pipes.forEach(p=>{rect(p.x,0,70,p.top,'#59d66f');rect(p.x-7,p.top-18,84,18,'#8cff98');rect(p.x,p.top+p.gap,70,H-p.top-p.gap-26,'#59d66f');rect(p.x-7,p.top+p.gap,84,18,'#8cff98')});ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(Math.min(.7,Math.max(-.5,bird.v/600)));circle(0,0,15,'#ffd166');circle(8,-5,4,'#fff');circle(9,-5,2,'#111');ctx.fillStyle='#ff8a4c';ctx.beginPath();ctx.moveTo(12,2);ctx.lineTo(26,7);ctx.lineTo(12,10);ctx.fill();ctx.restore();text('PIPES '+passed+'/10',22,35,18,'#fff');if(winTimer>0)drawWinner(winnerNames.flappy)},}};
 function makePlatform(){let p={x:45,y:345,vx:0,vy:0,w:28,h:34,ground:false},coins=[0,1,2,3,4].map((_,i)=>({x:145+i*112,y:[320,260,300,220,300][i],got:false})),plats=[{x:0,y:390,w:800,h:60},{x:110,y:350,w:100,h:14},{x:250,y:300,w:105,h:14},{x:390,y:260,w:110,h:14},{x:540,y:315,w:105,h:14}],flag={x:735,y:300};let won=false,winTimer=0;return{update(dt){if(won)return;if(winTimer>0){winTimer-=dt;if(winTimer<=0){won=true;finish(true,'All five coins collected and the flag reached!')}return;}p.vx=(keys.arrowright||keys.d?220:0)-(keys.arrowleft||keys.a?220:0);p.x=Math.max(0,Math.min(W-p.w,p.x+p.vx*dt));if((keys[' ']||keys.arrowup||keys.w)&&p.ground){p.vy=-480;p.ground=false}p.vy+=1100*dt;let old=p.y;p.y+=p.vy*dt;p.ground=false;for(const q of plats){if(p.x+p.w>q.x&&p.x<q.x+q.w&&old+p.h<=q.y&&p.y+p.h>=q.y&&p.vy>=0){p.y=q.y-p.h;p.vy=0;p.ground=true}}coins.forEach(c=>{if(!c.got&&Math.hypot(p.x+14-c.x,p.y+17-c.y)<28){c.got=true;setScore(score+20)}});if(p.y>H){finish(false,'You fell off the course. Give it another go!');won=true}if(p.x+p.w>flag.x&&p.y+p.h>flag.y-40&&coins.every(c=>c.got)){winTimer=5}},draw(){base();plats.forEach(q=>rect(q.x,q.y,q.w,q.h,'#6b7ca8'));coins.forEach(c=>{if(!c.got){circle(c.x,c.y,9,'#ffd166');circle(c.x-2,c.y-2,3,'#fff2b2')}});rect(flag.x,flag.y,5,90,'#e9f0ff');ctx.fillStyle='#ff65ad';ctx.beginPath();ctx.moveTo(flag.x+5,flag.y);ctx.lineTo(flag.x+48,flag.y+15);ctx.lineTo(flag.x+5,flag.y+30);ctx.fill();rect(p.x,p.y,p.w,p.h,'#59e1e8');circle(p.x+19,p.y+10,3,'#091127');text('COINS '+coins.filter(c=>c.got).length+'/5',20,34,18);text('REACH THE FLAG',W-20,34,15,'#ffd166','right');if(winTimer>0)drawWinner(winnerNames.platform)}}}
 function makeBreakout(){let paddle={x:340,y:415,w:120,h:14},ball={x:400,y:380,vx:190,vy:-230,r:8},bricks=[],lives=3,winTimer=0,won=false;for(let r=0;r<4;r++)for(let c=0;c<10;c++)bricks.push({x:42+c*72,y:65+r*29,w:62,h:18,on:true,color:['#ff65ad','#ffd166','#59e1e8','#8cff98'][r]});return{update(dt){if(won)return;if(winTimer>0){winTimer-=dt;if(winTimer<=0){won=true;finish(true,'Every brick is gone. Nice work!')}return;}paddle.x= Math.max(0,Math.min(W-paddle.w,(keys.arrowright? paddle.x+360*dt:keys.arrowleft?paddle.x-360*dt:pointerX-paddle.w/2)));ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;if(ball.x<ball.r||ball.x>W-ball.r)ball.vx*=-1;if(ball.y<ball.r)ball.vy=Math.abs(ball.vy);if(ball.y+ball.r>paddle.y&&ball.y<paddle.y+paddle.h&&ball.x>paddle.x&&ball.x<paddle.x+paddle.w&&ball.vy>0){ball.vy=-Math.abs(ball.vy);ball.vx=((ball.x-(paddle.x+paddle.w/2))/(paddle.w/2))*300}for(const b of bricks){if(b.on&&ball.x>b.x&&ball.x<b.x+b.w&&ball.y>b.y&&ball.y<b.y+b.h){b.on=false;ball.vy*=-1;setScore(score+10);break}}if(bricks.every(b=>!b.on)){winTimer=5;}if(winTimer>0)return;if(ball.y>H){lives--;if(lives<=0)finish(false,'You ran out of lives.');else{ball={x:400,y:380,vx:190,vy:-230,r:8}}}},draw(){base();drawHiddenName(winnerNames.breakout);bricks.forEach(b=>{if(b.on){rect(b.x,b.y,b.w,b.h,b.color);rect(b.x+3,b.y+3,b.w-6,3,'#ffffff55')}});rect(paddle.x,paddle.y,paddle.w,paddle.h,'#59e1e8');circle(ball.x,ball.y,ball.r,'#fff');text('LIVES '+lives,20,35,18);text('BREAK THE BRICKS',W-20,35,15,'#ffd166','right');if(winTimer>0)drawWinner(winnerNames.breakout)}}}
-function makeInvaders(){let aliens=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)aliens.push({x:190+c*85,y:90+r*52,alive:true});let player={x:375},shots=[],enemyShots=[],dir=1,clock=0,kills=0,dead=false,winTimer=0;function shoot(){if(shots.length<4)shots.push({x:player.x+25,y:390})}return{shoot,update(dt){if(dead)return;if(winTimer>0){winTimer-=dt;if(winTimer<=0){dead=true;finish(true,'The galaxy is safe. You defeated all 15 invaders!')}return;}player.x=Math.max(0,Math.min(W-50,player.x+((keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0))*300*dt));if(Math.random()<dt*.7&&enemyShots.length<5){let a=aliens.filter(a=>a.alive);if(a.length){let q=a[Math.floor(Math.random()*a.length)];enemyShots.push({x:q.x+18,y:q.y+20})}}shots.forEach(s=>s.y-=430*dt);enemyShots.forEach(s=>s.y+=220*dt);shots=shots.filter(s=>s.y>-10);enemyShots=enemyShots.filter(s=>s.y<H+10);aliens.forEach(a=>{if(a.alive){shots.forEach(s=>{if(s.x>a.x-5&&s.x<a.x+40&&s.y>a.y-5&&s.y<a.y+30){a.alive=false;s.y=-20;kills++;setScore(kills*20);if(kills>=15){winTimer=5}}})}});if(winTimer>0)return;clock+=dt;if(clock>.65){clock=0;let live=aliens.filter(a=>a.alive);if(live.length){let edge=live.some(a=>a.x>W-65||a.x<15);if(edge){dir*=-1;live.forEach(a=>a.y+=22)}else live.forEach(a=>a.x+=dir*18)}}if(enemyShots.some(s=>s.x>player.x&&s.x<player.x+50&&s.y>390&&s.y<430)){dead=true;finish(false,'An alien shot got through your defenses.')}if(aliens.some(a=>a.alive&&a.y>365)){dead=true;finish(false,'The invaders reached your base!')}},draw(){base();drawHiddenName(winnerNames.invaders);aliens.forEach(a=>{if(a.alive){rect(a.x+7,a.y,24,7,'#8cff98');rect(a.x,a.y+7,38,17,#59d66f');rect(a.x+5,a.y+24,7,7,'#8cff98');rect(a.x+26,a.y+24,7,7,'#8cff98');rect(a.x+9,a.y+11,5,5,'#091127');rect(a.x+25,a.y+11,5,5,'#091127')}});rect(player.x,405,50,15,'#59e1e8');rect(player.x+19,392,12,14,'#59e1e8');shots.forEach(s=>rect(s.x,s.y,4,12,'#ffd166'));enemyShots.forEach(s=>rect(s.x,s.y,5,12,'#ff65ad'));text('ALIENS '+kills+'/15',20,35,18);if(winTimer>0)drawWinner(winnerNames.invaders)}}}
+function makeInvaders(){let aliens=[];for(let r=0;r<3;r++)for(let c=0;c<5;c++)aliens.push({x:190+c*85,y:90+r*52,alive:true});let player={x:375},shots=[],enemyShots=[],dir=1,clock=0,kills=0,dead=false,winTimer=0;function shoot(){if(shots.length<4)shots.push({x:player.x+25,y:390})}return{shoot,update(dt){if(dead)return;if(winTimer>0){winTimer-=dt;if(winTimer<=0){dead=true;finish(true,'The galaxy is safe. You defeated all 15 invaders!')}return;}player.x=Math.max(0,Math.min(W-50,player.x+((keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0))*300*dt));if(Math.random()<dt*.7&&enemyShots.length<5){let a=aliens.filter(a=>a.alive);if(a.length){let q=a[Math.floor(Math.random()*a.length)];enemyShots.push({x:q.x+18,y:q.y+20})}}shots.forEach(s=>s.y-=430*dt);enemyShots.forEach(s=>s.y+=220*dt);shots=shots.filter(s=>s.y>-10);enemyShots=enemyShots.filter(s=>s.y<H+10);aliens.forEach(a=>{if(a.alive){shots.forEach(s=>{if(s.x>a.x-5&&s.x<a.x+40&&s.y>a.y-5&&s.y<a.y+30){a.alive=false;s.y=-20;kills++;setScore(kills*20);if(kills>=15){winTimer=5}}})}});if(winTimer>0)return;clock+=dt;if(clock>.65){clock=0;let live=aliens.filter(a=>a.alive);if(live.length){let edge=live.some(a=>a.x>W-65||a.x<15);if(edge){dir*=-1;live.forEach(a=>a.y+=22)}else live.forEach(a=>a.x+=dir*18)}}if(enemyShots.some(s=>s.x>player.x&&s.x<player.x+50&&s.y>390&&s.y<430)){dead=true;finish(false,'An alien shot got through your defenses.')}if(aliens.some(a=>a.alive&&a.y>365)){dead=true;finish(false,'The invaders reached your base!')}},draw(){base();drawHiddenName(winnerNames.invaders);aliens.forEach(a=>{if(a.alive){rect(a.x+7,a.y,24,7,'#8cff98');rect(a.x,a.y+7,38,17,'#59d66f');rect(a.x+5,a.y+24,7,7,'#8cff98');rect(a.x+26,a.y+24,7,7,'#8cff98');rect(a.x+9,a.y+11,5,5,'#091127');rect(a.x+25,a.y+11,5,5,'#091127')}});rect(player.x,405,50,15,'#59e1e8');rect(player.x+19,392,12,14,'#59e1e8');shots.forEach(s=>rect(s.x,s.y,4,12,'#ffd166'));enemyShots.forEach(s=>rect(s.x,s.y,5,12,'#ff65ad'));text('ALIENS '+kills+'/15',20,35,18);if(winTimer>0)drawWinner(winnerNames.invaders)}}}
 
 function makeSnake() {
     const cell = 20;
@@ -276,6 +276,7 @@ function makeSnake() {
     }
 
     function change(x, y) {
+        // Prevent reversing directly into yourself
         if (x !== -dir.x || y !== -dir.y) {
             next = {x, y};
         }
@@ -309,6 +310,7 @@ function makeSnake() {
                 return;
             }
 
+            // KEYBOARD CONTROLS
             if (keys.arrowup || keys.w) {
                 change(0, -1);
             } else if (keys.arrowdown || keys.s) {
@@ -319,6 +321,7 @@ function makeSnake() {
                 change(1, 0);
             }
 
+            // Movement timing
             acc += dt;
             if (acc < 0.115) return;
             acc = 0;
@@ -330,6 +333,7 @@ function makeSnake() {
                 y: snake[0].y + dir.y
             };
 
+            // Wall and self collision
             if (
                 h.x < 0 ||
                 h.x >= cols ||
@@ -348,6 +352,7 @@ function makeSnake() {
 
             snake.unshift(h);
 
+            // Food collection
             if (h.x === food.x && h.y === food.y) {
                 eaten++;
                 setScore(eaten * 25);
@@ -399,14 +404,6 @@ function makeSnake() {
 
 function drawArts(){const configs=[['#ffd166','#59d66f'],['#59e1e8','#ff65ad'],['#ff65ad','#ffd166'],['#8cff98','#59e1e8'],['#59d66f','#ff65ad']];configs.forEach((co,i)=>{let c=document.getElementById('art'+i),g=c.getContext('2d');g.fillStyle='#0a1023';g.fillRect(0,0,300,150);if(i===0){g.fillStyle=co[0];g.beginPath();g.arc(90,70,19,0,7);g.fill();g.fillStyle=co[1];g.fillRect(180,0,30,55);g.fillRect(180,95,30,55);g.fillRect(175,50,40,10);g.fillRect(175,90,40,10)}if(i===1){g.fillStyle=co[0];g.fillRect(35,100,230,50);g.fillRect(80,75,55,10);g.fillRect(170,50,55,10);g.fillStyle=co[1];g.fillRect(125,70,20,30)}if(i===2){for(let r=0;r<3;r++)for(let x=0;x<5;x++){g.fillStyle=[co[0],co[1],'#59e1e8'][r];g.fillRect(40+x*45,25+r*23,38,15)}g.fillStyle='#fff';g.beginPath();g.arc(150,105,7,0,7);g.fill();g.fillStyle=co[0];g.fillRect(110,125,80,8)}if(i===3){g.fillStyle=co[0];for(let r=0;r<2;r++)for(let x=0;x<4;x++)g.fillRect(55+x*48,35+r*35,28,20);g.fillStyle=co[1];g.fillRect(140,118,30,10);g.fillRect(151,105,8,15)}if(i===4){g.fillStyle=co[0];[[90,75],[110,75],[130,75],[150,75],[150,95],[150,115]].forEach(([x,y])=>g.fillRect(x,y,18,18));g.fillStyle=co[1];g.fillRect(220,45,15,15)}})}
 drawArts();$('#total').textContent=localStorage.getItem('miniArcadeTotal')||0;
-
-// Direct launch check from URL parameter
-const requestedGame = new URLSearchParams(window.location.search).get('game')?.toLowerCase();
-if (requestedGame && Object.prototype.hasOwnProperty.call(titles, requestedGame)) {
-    openGame(requestedGame);
-    $('#touch-controls').classList.add('visible');
-    start(requestedGame);
-}
 })();
 </script>
 </body>
