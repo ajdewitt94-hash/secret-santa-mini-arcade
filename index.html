@@ -34,7 +34,6 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
 .gamehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .gamehead h2{margin:0;font-size:1.25rem}
 .headright{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem}
-.close{background:#273453;color:white;border-radius:9px;padding:8px 12px;font-weight:800}
 .stage{position:relative;background:#070d1c;border:1px solid #344267;border-radius:12px;overflow:hidden}
 #game{width:100%;height:auto;display:block;aspect-ratio:16/9;touch-action:none}
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:#070d1cce;padding:20px}
@@ -123,7 +122,7 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
 
 <div class="modal" id="modal">
  <div class="gamebox">
-  <div class="gamehead"><h2 id="gameTitle">Game</h2><div class="headright"><span>Score: <b id="score">0</b></span><button class="close" id="close">✕ Exit</button></div></div>
+  <div class="gamehead"><h2 id="gameTitle">Game</h2><div class="headright"><span>Score: <b id="score">0</b></span></div></div>
   <div class="stage"><canvas id="game" width="800" height="450"></canvas>
 <div class="touch-controls" id="touch-controls">
     <div class="move-buttons">
@@ -168,7 +167,7 @@ function openGame(name) {
     overlay('READY?', intro[name], 'START GAME');
 }
 function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
-$('#close').onclick=closeGame;$('#start').onclick=()=>{
+$('#start').onclick=()=>{
     $('#touch-controls').classList.add('visible');
     start(current);
 };
