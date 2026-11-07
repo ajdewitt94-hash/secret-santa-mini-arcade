@@ -125,7 +125,7 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
  <div class="gamebox">
   <div class="gamehead"><h2 id="gameTitle">Game</h2><div class="headright"><span>Score: <b id="score">0</b></span><button class="close" id="close">✕ Exit</button></div></div>
   <div class="stage"><canvas id="game" width="800" height="450"></canvas>
-<div class="touch-controls" id="touchControls">
+<div class="touch-controls" id="touch-controls">
     <div class="move-buttons">
         <button class="touch-btn" data-key="arrowleft">◀</button>
         <button class="touch-btn" data-key="arrowright">▶</button>
@@ -153,8 +153,8 @@ function finish(won,msg){cancelAnimationFrame(raf);raf=0;active=null;const final
 let current='';
 function openGame(name) {
     current = name;
-    $('#touchControls').classList.remove('visible');
-    $('#touchControls').dataset.game = name;
+    $('#touch-controls').classList.remove('visible');
+    $('#touch-controls').dataset.game = name;
     $('#actionButton').textContent = name === 'platform' ? 'JUMP' : 'FIRE';
 
     $('#modal').classList.add('open');
@@ -166,7 +166,7 @@ function openGame(name) {
 }
 function closeGame(){cancelAnimationFrame(raf);raf=0;active=null;$('#modal').classList.remove('open')}
 $('#close').onclick=closeGame;$('#start').onclick=()=>{
-    $('#touchControls').classList.add('visible');
+    $('#touch-controls').classList.add('visible');
     start(current);
 };
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>openGame(b.dataset.game));
