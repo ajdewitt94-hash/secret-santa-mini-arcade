@@ -47,7 +47,6 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
 @media(max-width:560px){.wrap{width:min(100% - 22px,1100px);padding-top:14px}.card{padding:12px}.art{height:115px}.gamebox{padding:10px}.gamehead h2{font-size:1rem}.headright{font-size:.78rem}}
 
 /* Mobile arcade controls */
-
 .touch-controls {
     display: none;
     position: absolute;
@@ -92,8 +91,8 @@ footer{text-align:center;color:#8290b2;font-size:.82rem;margin-top:28px}
 }
 
 @media (pointer: coarse) and (max-width: 900px) {
-    .touch-controls[data-game="platform"],
-    .touch-controls[data-game="invaders"] {
+    .touch-controls[data-game="platform"].visible,
+    .touch-controls[data-game="invaders"].visible {
         display: flex;
     }
 }
